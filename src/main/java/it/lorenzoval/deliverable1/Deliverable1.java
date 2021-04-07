@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -21,7 +21,7 @@ public class Deliverable1 {
             "%22resolution%22=%22fixed%22&fields=key,resolutiondate,versions,created&startAt={1}&maxResults={2}";
     private static final Logger logger = Logger.getLogger(Deliverable1.class.getName());
 
-    public static JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
+    public static JSONObject readJsonFromUrl(String url) throws IOException {
         try (InputStream in = new URL(url).openStream()) {
             return new JSONObject(IOUtils.toString(in, StandardCharsets.UTF_8));
         }
@@ -35,7 +35,7 @@ public class Deliverable1 {
 
         do {
             j = i + 1000;
-            url = java.text.MessageFormat.format(API_URL, PROJECT, Integer.toString(i), Integer.toString(j));
+            url = MessageFormat.format(API_URL, PROJECT, Integer.toString(i), Integer.toString(j));
 
             try {
                 JSONObject json = readJsonFromUrl(url);
