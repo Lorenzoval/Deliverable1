@@ -21,12 +21,6 @@ public class Deliverable1 {
             "%22resolution%22=%22fixed%22&fields=key,resolutiondate,versions,created&startAt={1}&maxResults={2}";
     private static final Logger logger = Logger.getLogger(Deliverable1.class.getName());
 
-    public static JSONObject readJsonFromUrl(String url) throws IOException {
-        try (InputStream in = new URL(url).openStream()) {
-            return new JSONObject(IOUtils.toString(in, StandardCharsets.UTF_8));
-        }
-    }
-
     public static void main(String[] args) {
         int i = 0;
         int j;
@@ -37,8 +31,8 @@ public class Deliverable1 {
             j = i + 1000;
             url = MessageFormat.format(API_URL, PROJECT, Integer.toString(i), Integer.toString(j));
 
-            try {
-                JSONObject json = readJsonFromUrl(url);
+            try (InputStream in = new URL(url).openStream()) {
+                JSONObject json = new JSONObject(IOUtils.toString(in, StandardCharsets.UTF_8));
                 JSONArray issues = json.getJSONArray("issues");
                 total = json.getInt("total");
 
