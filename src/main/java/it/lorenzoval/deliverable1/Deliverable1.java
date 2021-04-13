@@ -1,13 +1,19 @@
 package it.lorenzoval.deliverable1;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
+import java.time.OffsetDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import org.json.JSONObject;
@@ -21,11 +27,28 @@ public class Deliverable1 {
             "%22resolution%22=%22fixed%22&fields=key,resolutiondate,versions,created&startAt={1}&maxResults={2}";
     private static final Logger logger = Logger.getLogger(Deliverable1.class.getName());
 
+    public static void writeToCSV(SortedMap<YearMonth, Integer> map, String filename) throws IOException {
+        File file = new File(filename);
+        List<String> list = new ArrayList<>();
+        YearMonth begin = map.firstKey();
+        YearMonth end = map.lastKey();
+        for (; !begin.isAfter(end); begin = begin.plusMonths(1)) {
+            Integer value = map.get(begin);
+            if (null == value) {
+                value = 0;
+            }
+            list.add(begin + "," + value);
+        }
+        FileUtils.writeLines(file, list);
+    }
+
     public static void main(String[] args) {
         int i = 0;
         int j;
         int total = 1;
         String url;
+        TreeMap<YearMonth, Integer> treeMap = new TreeMap<>();
+        DateTimeFormatter fromAPIFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
         do {
             j = i + 1000;
@@ -37,9 +60,9 @@ public class Deliverable1 {
                 total = json.getInt("total");
 
                 for (; i < total && i < j; i++) {
-                    //Iterate through each bug
-                    String key = issues.getJSONObject(i % 1000).get("key").toString();
-                    logger.log(Level.INFO, key);
+                    OffsetDateTime odt = OffsetDateTime.parse(issues.getJSONObject(i % 1000)
+                            .getJSONObject("fields").get("resolutiondate").toString(), fromAPIFormatter);
+                    treeMap.merge(YearMonth.from(odt), 1, (oldValue, unused) -> ++oldValue);
                 }
 
             } catch (IOException ioe) {
@@ -47,6 +70,12 @@ public class Deliverable1 {
             }
 
         } while (i < total);
+
+        try {
+            writeToCSV(treeMap, "out.csv");
+        } catch (IOException ioe) {
+            logger.log(Level.WARNING, ioe.toString());
+        }
 
     }
 
